@@ -247,7 +247,7 @@
       #bucket {
         width: 70px;
         height: 60px;
-        bottom: 20px;
+        bottom: 50px;
       }
       
       .star {
@@ -346,8 +346,13 @@
           starData.element.classList.add('star-caught');
           
           setTimeout(() => {
-            starData.element.remove();
-            stars.splice(i, 1);
+            if (starData.element && starData.element.parentNode) {
+              starData.element.remove();
+            }
+            const index = stars.indexOf(starData);
+            if (index > -1) {
+              stars.splice(index, 1);
+            }
           }, 500);
           
           updateScore();
@@ -357,7 +362,9 @@
         // Check if star has fallen off screen
         if (starData.y > window.innerHeight + 50) {
           missed++;
-          starData.element.remove();
+          if (starData.element && starData.element.parentNode) {
+            starData.element.remove();
+          }
           stars.splice(i, 1);
           updateScore();
           
@@ -406,7 +413,11 @@
         
         gameContainer.appendChild(sparkle);
         
-        setTimeout(() => sparkle.remove(), 1000);
+        setTimeout(() => {
+          if (sparkle && sparkle.parentNode) {
+            sparkle.remove();
+          }
+        }, 1000);
       }
     }
 
@@ -440,16 +451,28 @@
       missed = 0;
       
       // Clear all stars
-      stars.forEach(starData => starData.element.remove());
+      stars.forEach(starData => {
+        if (starData.element && starData.element.parentNode) {
+          starData.element.remove();
+        }
+      });
       stars = [];
       
       // Clear any remaining star elements
       const remainingStars = document.querySelectorAll('.star');
-      remainingStars.forEach(star => star.remove());
+      remainingStars.forEach(star => {
+        if (star && star.parentNode) {
+          star.remove();
+        }
+      });
       
       // Clear sparkles
       const sparkles = document.querySelectorAll('.sparkle');
-      sparkles.forEach(sparkle => sparkle.remove());
+      sparkles.forEach(sparkle => {
+        if (sparkle && sparkle.parentNode) {
+          sparkle.remove();
+        }
+      });
       
       startGame();
     }
