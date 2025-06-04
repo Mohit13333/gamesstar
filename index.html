@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Falling Star Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: 
+        radial-gradient(ellipse at top, #1e3c72 0%, #2a5298 50%),
+        linear-gradient(to bottom, #0f0f23, #1a1a2e, #16213e);
+      color: white;
+      text-align: center;
+      user-select: none;
+      cursor: default;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Animated background stars */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+      background-repeat: repeat;
+      background-size: 200px 100px;
+      animation: twinkle 8s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.3; }
+      100% { opacity: 0.8; }
+    }
+
+    #bucket {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 70px;
+      background: linear-gradient(145deg, #ffd700, #ffb300);
+      border: 3px solid #ff8c00;
+      border-radius: 8px 8px 25px 25px;
+      box-shadow: 
+        0 8px 16px rgba(255, 140, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        0 0 20px rgba(255, 215, 0, 0.4);
+      cursor: grab;
+      transition: all 0.1s ease-out;
+      z-index: 10;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 8px;
+    }
+
+    #bucket:active {
+      cursor: grabbing;
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 
+        0 10px 20px rgba(255, 140, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 0 25px rgba(255, 215, 0, 0.6);
+    }
+
+    #bucket::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 10px;
+      right: 10px;
+      height: 12px;
+      background: linear-gradient(90deg, #ff8c00, #ffd700, #ff8c00);
+      border-radius: 6px;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Visual catch zone indicator */
+    #bucket::after {
+      content: '';
+      position: absolute;
+      top: -25px;
+      left: -25px;
+      right: -25px;
+      height: 30px;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      animation: catchZonePulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes catchZonePulse {
+      0% { opacity: 0.2; }
+      100% { opacity: 0.6; }
+    }
+
+    .star {
+      position: absolute;
+      font-size: 35px;
+      z-index: 5;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.6));
+      transition: transform 0.1s ease;
+    }
+
+    .star:hover {
+      transform: scale(1.1);
+    }
+
+    #scoreBoard {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      z-index: 15;
+      backdrop-filter: blur(10px);
+    }
+
+    #gameOver {
+      display: none;
+      font-size: 48px;
+      font-weight: bold;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff4757;
+      text-shadow: 
+        0 0 10px #ff4757,
+        0 0 20px #ff4757,
+        0 0 30px #ff4757;
+      animation: pulse 1.5s ease-in-out infinite alternate;
+      z-index: 20;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    #restartBtn {
+      display: none;
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 25px;
+      box-shadow: 
+        0 8px 15px rgba(238, 90, 82, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+
+    #restartBtn:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 
+        0 12px 20px rgba(238, 90, 82, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    #restartBtn:active {
+      transform: translateX(-50%) translateY(0px);
+      box-shadow: 
+        0 6px 10px rgba(238, 90, 82, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Instructions */
+    #instructions {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 15px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      z-index: 15;
+      opacity: 0.8;
+    }
+
+    /* Caught star effect */
+    @keyframes starCatch {
+      0% { transform: scale(1) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+      100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    .star-caught {
+      animation: starCatch 0.5s ease-out forwards !important;
+    }
+
+    /* Sparkle animation */
+    @keyframes sparkle {
+      0% { transform: scale(0) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+      100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    .sparkle {
+      position: absolute;
+      font-size: 20px;
+      pointer-events: none;
+      animation: sparkle 1s ease-out forwards;
+      z-index: 20;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      #bucket {
+        width: 70px;
+        height: 60px;
+        bottom: 20px;
+      }
+      
+      .star {
+        font-size: 30px;
+      }
+      
+      #scoreBoard {
+        font-size: 16px;
+        padding: 10px 15px;
+      }
+      
+      #gameOver {
+        font-size: 36px;
+      }
+      
+      #instructions {
+        font-size: 12px;
+        bottom: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="scoreBoard">⭐ Caught: 0 | ❌ Missed: 0</div>
+    <div id="bucket"></div>
+    <div id="gameOver">Game Over!</div>
+    <button id="restartBtn">🎮 Restart Game</button>
+    <div id="instructions">
+      🖱️ Drag bucket or use ⬅️➡️ keys
+    </div>
+  </div>
+
+  <script>
+    let caught = 0;
+    let missed = 0;
+    let gameInterval;
+    let collisionCheckInterval;
+    let isDragging = false;
+    let startX = 0;
+    let startLeft = 0;
+    let gameRunning = false;
+    let stars = [];
+
+    const gameContainer = document.getElementById('gameContainer');
+    const bucket = document.getElementById('bucket');
+    const scoreBoard = document.getElementById('scoreBoard');
+    const gameOver = document.getElementById('gameOver');
+    const restartBtn = document.getElementById('restartBtn');
+
+    function createStar() {
+      if (!gameRunning) return;
+      
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.textContent = '⭐';
+      
+      const starLeft = Math.random() * (window.innerWidth - 50);
+      const fallSpeed = Math.random() * 2 + 2; // 2-4 pixels per frame
+      
+      star.style.left = starLeft + 'px';
+      star.style.top = '-50px';
+      
+      gameContainer.appendChild(star);
+      
+      // Store star data for collision detection
+      const starData = {
+        element: star,
+        x: starLeft,
+        y: -50,
+        speed: fallSpeed,
+        caught: false
+      };
+      
+      stars.push(starData);
+    }
+
+    function updateStars() {
+      if (!gameRunning) return;
+      
+      for (let i = stars.length - 1; i >= 0; i--) {
+        const starData = stars[i];
+        
+        if (starData.caught) continue;
+        
+        // Update star position
+        starData.y += starData.speed;
+        starData.element.style.top = starData.y + 'px';
+        
+        // Check collision with bucket
+        if (checkStarCatch(starData)) {
+          starData.caught = true;
+          caught++;
+          createSparkleEffect(starData.x, starData.y);
+          starData.element.classList.add('star-caught');
+          
+          setTimeout(() => {
+            starData.element.remove();
+            stars.splice(i, 1);
+          }, 500);
+          
+          updateScore();
+          continue;
+        }
+        
+        // Check if star has fallen off screen
+        if (starData.y > window.innerHeight + 50) {
+          missed++;
+          starData.element.remove();
+          stars.splice(i, 1);
+          updateScore();
+          
+          if (missed >= 5) {
+            endGame();
+            return;
+          }
+        }
+      }
+    }
+
+    function checkStarCatch(starData) {
+      const bucketRect = bucket.getBoundingClientRect();
+      
+      if (!bucketRect) return false;
+      
+      const bucketLeft = bucketRect.left;
+      const bucketRight = bucketRect.right;
+      const bucketTop = bucketRect.top;
+      const bucketBottom = bucketRect.bottom;
+      
+      const starCenterX = starData.x + 17.5; // Star is 35px, so center is at 17.5px
+      const starBottom = starData.y + 35; // Star height
+      const starTop = starData.y;
+      
+      // Generous collision detection
+      const catchZoneLeft = bucketLeft - 20;
+      const catchZoneRight = bucketRight + 20;
+      const catchZoneTop = bucketTop - 15;
+      
+      // Check if star overlaps with bucket catch zone
+      return (starCenterX >= catchZoneLeft && 
+              starCenterX <= catchZoneRight && 
+              starBottom >= catchZoneTop &&
+              starTop <= bucketBottom);
+    }
+
+    function createSparkleEffect(x, y) {
+      for (let i = 0; i < 5; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.textContent = '✨';
+        sparkle.style.left = (x + Math.random() * 30 - 15) + 'px';
+        sparkle.style.top = (y + Math.random() * 30 - 15) + 'px';
+        sparkle.style.animationDelay = (i * 0.1) + 's';
+        
+        gameContainer.appendChild(sparkle);
+        
+        setTimeout(() => sparkle.remove(), 1000);
+      }
+    }
+
+    function updateScore() {
+      scoreBoard.innerHTML = `⭐ Caught: ${caught} | ❌ Missed: ${missed}`;
+    }
+
+    function startGame() {
+      gameRunning = true;
+      gameOver.style.display = 'none';
+      restartBtn.style.display = 'none';
+      updateScore();
+      
+      // Create stars every 1000ms
+      gameInterval = setInterval(createStar, 1000);
+      
+      // Update star positions and check collisions every 16ms (~60fps)
+      collisionCheckInterval = setInterval(updateStars, 16);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(gameInterval);
+      clearInterval(collisionCheckInterval);
+      gameOver.style.display = 'block';
+      restartBtn.style.display = 'block';
+    }
+
+    function resetGame() {
+      caught = 0;
+      missed = 0;
+      
+      // Clear all stars
+      stars.forEach(starData => starData.element.remove());
+      stars = [];
+      
+      // Clear any remaining star elements
+      const remainingStars = document.querySelectorAll('.star');
+      remainingStars.forEach(star => star.remove());
+      
+      // Clear sparkles
+      const sparkles = document.querySelectorAll('.sparkle');
+      sparkles.forEach(sparkle => sparkle.remove());
+      
+      startGame();
+    }
+
+    function moveBucket(clientX) {
+      const containerWidth = gameContainer.offsetWidth;
+      const bucketWidth = bucket.offsetWidth;
+      
+      let newLeft = clientX - (bucketWidth / 2);
+      newLeft = Math.max(0, Math.min(newLeft, containerWidth - bucketWidth));
+      
+      bucket.style.left = newLeft + 'px';
+      bucket.style.transform = 'none';
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', function (e) {
+      if (!gameRunning) return;
+      
+      let left = bucket.offsetLeft;
+      const step = 50;
+      const maxLeft = gameContainer.offsetWidth - bucket.offsetWidth;
+
+      if (e.key === 'ArrowLeft') {
+        left = Math.max(0, left - step);
+        bucket.style.left = left + 'px';
+        bucket.style.transform = 'none';
+      } else if (e.key === 'ArrowRight') {
+        left = Math.min(maxLeft, left + step);
+        bucket.style.left = left + 'px';
+        bucket.style.transform = 'none';
+      }
+    });
+
+    // Mouse controls
+    bucket.addEventListener('mousedown', function (e) {
+      if (!gameRunning) return;
+      
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX;
+      startLeft = bucket.offsetLeft;
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    });
+
+    function handleMouseMove(e) {
+      if (!isDragging || !gameRunning) return;
+      e.preventDefault();
+      moveBucket(e.clientX);
+    }
+
+    function handleMouseUp(e) {
+      isDragging = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    // Touch controls
+    bucket.addEventListener('touchstart', function (e) {
+      if (!gameRunning) return;
+      
+      e.preventDefault();
+      isDragging = true;
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startLeft = bucket.offsetLeft;
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleTouchEnd);
+    });
+
+    function handleTouchMove(e) {
+      if (!isDragging || !gameRunning) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      moveBucket(touch.clientX);
+    }
+
+    function handleTouchEnd(e) {
+      isDragging = false;
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    }
+
+    // Game controls
+    restartBtn.addEventListener('click', resetGame);
+
+    // Prevent context menu on long press
+    bucket.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Initialize game when page loads
+    window.addEventListener('load', function() {
+      startGame();
+    });
+  </script>
+</body>
+</html>
