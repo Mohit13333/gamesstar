@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Falling Star Game</title>
+  <title>Enhanced Falling Star Game</title>
   <style>
     * {
       box-sizing: border-box;
@@ -21,6 +21,8 @@
       text-align: center;
       user-select: none;
       cursor: default;
+      min-height: 100vh;
+      position: relative;
     }
 
     #gameContainer {
@@ -134,7 +136,7 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       background: rgba(0, 0, 0, 0.6);
       padding: 15px 20px;
@@ -143,6 +145,45 @@
       border: 2px solid rgba(255, 255, 255, 0.1);
       z-index: 15;
       backdrop-filter: blur(10px);
+    }
+
+    #gameControls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 15;
+    }
+
+    .control-btn {
+      padding: 10px 15px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    #startBtn {
+      background: linear-gradient(145deg, #4CAF50, #45a049);
+    }
+
+    #startBtn.paused {
+      background: linear-gradient(145deg, #ff9800, #e68900);
+    }
+
+    .control-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .control-btn:active {
+      transform: translateY(0px);
     }
 
     #gameOver {
@@ -160,6 +201,29 @@
         0 0 30px #ff4757;
       animation: pulse 1.5s ease-in-out infinite alternate;
       z-index: 20;
+    }
+
+    #pauseOverlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 18;
+      backdrop-filter: blur(5px);
+    }
+
+    #pauseText {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 20px #ffd700;
     }
 
     @keyframes pulse {
@@ -242,12 +306,76 @@
       z-index: 20;
     }
 
+    /* Speed indicator */
+    #speedIndicator {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #ffd700;
+      text-shadow: 0 0 10px #ffd700;
+    }
+
     /* Responsive design */
-    @media (max-width: 768px) {
+    
+    /* Very small devices (phones in portrait, less than 576px) */
+    @media (max-width: 575px) {
+      #bucket {
+        width: 60px;
+        height: 50px;
+        bottom: 80px;
+      }
+      
+      .star {
+        font-size: 25px;
+      }
+      
+      #scoreBoard {
+        font-size: 14px;
+        padding: 8px 12px;
+        top: 10px;
+        left: 10px;
+      }
+      
+      #gameControls {
+        top: 10px;
+        right: 10px;
+      }
+      
+      .control-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      
+      #gameOver {
+        font-size: 28px;
+      }
+      
+      #pauseText {
+        font-size: 24px;
+      }
+      
+      #instructions {
+        font-size: 10px;
+        bottom: 5px;
+        right: 5px;
+        padding: 5px 8px;
+      }
+      
+      #restartBtn {
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      
+      #speedIndicator {
+        font-size: 12px;
+      }
+    }
+    
+    /* Small devices (landscape phones, 576px and up) */
+    @media (min-width: 576px) and (max-width: 767px) {
       #bucket {
         width: 70px;
         height: 60px;
-        bottom: 100px;
+        bottom: 90px;
       }
       
       .star {
@@ -259,26 +387,175 @@
         padding: 10px 15px;
       }
       
+      .control-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      
       #gameOver {
-        font-size: 36px;
+        font-size: 32px;
+      }
+      
+      #pauseText {
+        font-size: 28px;
       }
       
       #instructions {
         font-size: 12px;
+      }
+    }
+    
+    /* Medium devices (tablets, 768px and up) */
+    @media (min-width: 768px) and (max-width: 991px) {
+      #bucket {
+        width: 75px;
+        height: 65px;
+        bottom: 40px;
+      }
+      
+      .star {
+        font-size: 32px;
+      }
+      
+      #scoreBoard {
+        font-size: 17px;
+        padding: 12px 18px;
+      }
+      
+      .control-btn {
+        padding: 9px 14px;
+        font-size: 15px;
+      }
+      
+      #gameOver {
+        font-size: 42px;
+      }
+      
+      #pauseText {
+        font-size: 32px;
+      }
+      
+      #instructions {
+        font-size: 13px;
+      }
+    }
+    
+    /* Large devices (desktops, 992px and up) */
+    @media (min-width: 992px) {
+      /* Default styles already applied */
+    }
+    
+    /* Extra large devices (large desktops, 1200px and up) */
+    @media (min-width: 1200px) {
+      #bucket {
+        width: 90px;
+        height: 80px;
+      }
+      
+      .star {
+        font-size: 40px;
+      }
+      
+      #scoreBoard {
+        font-size: 20px;
+        padding: 18px 25px;
+      }
+      
+      .control-btn {
+        padding: 12px 18px;
+        font-size: 18px;
+      }
+      
+      #gameOver {
+        font-size: 56px;
+      }
+      
+      #pauseText {
+        font-size: 42px;
+      }
+      
+      #instructions {
+        font-size: 16px;
+      }
+      
+      #restartBtn {
+        padding: 18px 35px;
+        font-size: 22px;
+      }
+      
+      #speedIndicator {
+        font-size: 16px;
+      }
+    }
+    
+    /* Landscape orientation adjustments */
+    @media (orientation: landscape) and (max-height: 600px) {
+      #bucket {
+        bottom: 20px;
+      }
+      
+      #scoreBoard {
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+      }
+      
+      #gameControls {
+        top: 10px;
+        right: 10px;
+      }
+      
+      #instructions {
         bottom: 10px;
         right: 10px;
+        font-size: 12px;
+      }
+    }
+    
+    /* High DPI displays */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .star {
+        filter: drop-shadow(0 0 4px rgba(255, 255, 0, 0.8));
+      }
+    }
+    
+    /* Hover states for touch devices */
+    @media (hover: none) and (pointer: coarse) {
+      .control-btn:hover {
+        transform: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      
+      #restartBtn:hover {
+        transform: translateX(-50%);
+        box-shadow: 
+          0 8px 15px rgba(238, 90, 82, 0.3),
+          inset 0 1px 2px rgba(255, 255, 255, 0.2);
       }
     }
   </style>
 </head>
 <body>
   <div id="gameContainer">
-    <div id="scoreBoard">⭐ Caught: 0 | ❌ Missed: 0</div>
+    <div id="scoreBoard">
+      ⭐ Caught: 0 | ❌ Missed: 0
+      <div id="speedIndicator">Speed Level: 1</div>
+    </div>
+    
+    <div id="gameControls">
+      <button id="startBtn" class="control-btn">▶️ Start</button>
+    </div>
+    
+    <div id="pauseOverlay">
+      <div id="pauseText">⏸️ Game Paused</div>
+    </div>
+    
     <div id="bucket"></div>
     <div id="gameOver">Game Over!</div>
     <button id="restartBtn">🎮 Restart Game</button>
     <div id="instructions">
-      🖱️ Drag bucket or use ⬅️➡️ keys
+      🖱️ Drag bucket or use ⬅️➡️ keys<br>
+      ▶️ Click button or press SPACE to start/pause
     </div>
   </div>
 
@@ -291,23 +568,49 @@
     let startX = 0;
     let startLeft = 0;
     let gameRunning = false;
+    let gamePaused = false;
+    let gameStarted = false;
     let stars = [];
+    let currentSpeed = 1;
+    let starSpawnRate = 1000; // Initial spawn rate in milliseconds
 
     const gameContainer = document.getElementById('gameContainer');
     const bucket = document.getElementById('bucket');
     const scoreBoard = document.getElementById('scoreBoard');
+    const speedIndicator = document.getElementById('speedIndicator');
     const gameOver = document.getElementById('gameOver');
     const restartBtn = document.getElementById('restartBtn');
+    const startBtn = document.getElementById('startBtn');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+
+    function calculateGameSpeed() {
+      // Increase speed every 5 stars caught
+      const speedLevel = Math.floor(caught / 5) + 1;
+      currentSpeed = Math.min(speedLevel, 10); // Cap at level 10
+      
+      // Decrease spawn rate (faster spawning) and increase fall speed
+      starSpawnRate = Math.max(300, 1000 - (currentSpeed - 1) * 100);
+      
+      speedIndicator.textContent = `Speed Level: ${currentSpeed}`;
+      
+      // Restart the spawn interval with new speed
+      if (gameRunning && !gamePaused) {
+        clearInterval(gameInterval);
+        gameInterval = setInterval(createStar, starSpawnRate);
+      }
+    }
 
     function createStar() {
-      if (!gameRunning) return;
+      if (!gameRunning || gamePaused) return;
       
       const star = document.createElement('div');
       star.className = 'star';
       star.textContent = '⭐';
       
       const starLeft = Math.random() * (window.innerWidth - 50);
-      const fallSpeed = Math.random() * 2 + 2; // 2-4 pixels per frame
+      // Increase fall speed based on current speed level
+      const baseFallSpeed = 2 + (currentSpeed - 1) * 0.5;
+      const fallSpeed = baseFallSpeed + Math.random() * 1;
       
       star.style.left = starLeft + 'px';
       star.style.top = '-50px';
@@ -327,7 +630,7 @@
     }
 
     function updateStars() {
-      if (!gameRunning) return;
+      if (!gameRunning || gamePaused) return;
       
       for (let i = stars.length - 1; i >= 0; i--) {
         const starData = stars[i];
@@ -356,6 +659,7 @@
           }, 500);
           
           updateScore();
+          calculateGameSpeed(); // Increase difficulty
           continue;
         }
         
@@ -422,33 +726,74 @@
     }
 
     function updateScore() {
-      scoreBoard.innerHTML = `⭐ Caught: ${caught} | ❌ Missed: ${missed}`;
+      scoreBoard.innerHTML = `⭐ Caught: ${caught} | ❌ Missed: ${missed}<div id="speedIndicator">Speed Level: ${currentSpeed}</div>`;
     }
 
     function startGame() {
       gameRunning = true;
+      gameStarted = true;
+      gamePaused = false;
       gameOver.style.display = 'none';
       restartBtn.style.display = 'none';
-      updateScore();
+      pauseOverlay.style.display = 'none';
+      startBtn.textContent = '⏸️ Pause';
+      startBtn.classList.add('paused');
       
-      // Create stars every 1000ms
-      gameInterval = setInterval(createStar, 1000);
+      updateScore();
+      calculateGameSpeed();
+      
+      // Create stars at current spawn rate
+      gameInterval = setInterval(createStar, starSpawnRate);
       
       // Update star positions and check collisions every 16ms (~60fps)
       collisionCheckInterval = setInterval(updateStars, 16);
     }
 
+    function pauseGame() {
+      if (!gameStarted || !gameRunning) return;
+      
+      gamePaused = true;
+      gameRunning = false;
+      pauseOverlay.style.display = 'block';
+      startBtn.textContent = '▶️ Resume';
+      startBtn.classList.remove('paused');
+      clearInterval(gameInterval);
+      clearInterval(collisionCheckInterval);
+    }
+
+    function resumeGame() {
+      if (!gameStarted || !gamePaused) return;
+      
+      gamePaused = false;
+      gameRunning = true;
+      pauseOverlay.style.display = 'none';
+      startBtn.textContent = '⏸️ Pause';
+      startBtn.classList.add('paused');
+      gameInterval = setInterval(createStar, starSpawnRate);
+      collisionCheckInterval = setInterval(updateStars, 16);
+    }
+
     function endGame() {
       gameRunning = false;
+      gameStarted = false;
+      gamePaused = false;
       clearInterval(gameInterval);
       clearInterval(collisionCheckInterval);
       gameOver.style.display = 'block';
       restartBtn.style.display = 'block';
+      pauseOverlay.style.display = 'none';
+      startBtn.textContent = '▶️ Start';
+      startBtn.classList.remove('paused');
     }
 
     function resetGame() {
       caught = 0;
       missed = 0;
+      currentSpeed = 1;
+      starSpawnRate = 1000;
+      gameStarted = false;
+      gamePaused = false;
+      gameRunning = false;
       
       // Clear all stars
       stars.forEach(starData => {
@@ -474,7 +819,12 @@
         }
       });
       
-      startGame();
+      startBtn.textContent = '▶️ Start';
+      startBtn.classList.remove('paused');
+      gameOver.style.display = 'none';
+      restartBtn.style.display = 'none';
+      pauseOverlay.style.display = 'none';
+      updateScore();
     }
 
     function moveBucket(clientX) {
@@ -488,12 +838,37 @@
       bucket.style.transform = 'none';
     }
 
+    // Auto-pause when window loses focus or becomes hidden
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && gameRunning && !gamePaused) {
+        pauseGame();
+      }
+    });
+
+    window.addEventListener('blur', function() {
+      if (gameRunning && !gamePaused) {
+        pauseGame();
+      }
+    });
+
     // Keyboard controls
     document.addEventListener('keydown', function (e) {
-      if (!gameRunning) return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        if (!gameStarted) {
+          startGame();
+        } else if (gameRunning && !gamePaused) {
+          pauseGame();
+        } else if (gamePaused) {
+          resumeGame();
+        }
+        return;
+      }
+
+      if (!gameRunning || gamePaused) return;
       
       let left = bucket.offsetLeft;
-      const step = 50;
+      const step = Math.min(50, window.innerWidth * 0.1); // Responsive step size
       const maxLeft = gameContainer.offsetWidth - bucket.offsetWidth;
 
       if (e.key === 'ArrowLeft') {
@@ -509,7 +884,7 @@
 
     // Mouse controls
     bucket.addEventListener('mousedown', function (e) {
-      if (!gameRunning) return;
+      if (!gameRunning || gamePaused) return;
       
       e.preventDefault();
       isDragging = true;
@@ -520,7 +895,7 @@
     });
 
     function handleMouseMove(e) {
-      if (!isDragging || !gameRunning) return;
+      if (!isDragging || !gameRunning || gamePaused) return;
       e.preventDefault();
       moveBucket(e.clientX);
     }
@@ -533,19 +908,19 @@
 
     // Touch controls
     bucket.addEventListener('touchstart', function (e) {
-      if (!gameRunning) return;
+      if (!gameRunning || gamePaused) return;
       
       e.preventDefault();
       isDragging = true;
       const touch = e.touches[0];
       startX = touch.clientX;
       startLeft = bucket.offsetLeft;
-      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd);
     });
 
     function handleTouchMove(e) {
-      if (!isDragging || !gameRunning) return;
+      if (!isDragging || !gameRunning || gamePaused) return;
       e.preventDefault();
       const touch = e.touches[0];
       moveBucket(touch.clientX);
@@ -558,16 +933,48 @@
     }
 
     // Game controls
-    restartBtn.addEventListener('click', resetGame);
+    startBtn.addEventListener('click', function() {
+      if (!gameStarted) {
+        startGame();
+      } else if (gameRunning && !gamePaused) {
+        pauseGame();
+      } else if (gamePaused) {
+        resumeGame();
+      }
+    });
+
+    restartBtn.addEventListener('click', function() {
+      resetGame();
+      startGame();
+    });
 
     // Prevent context menu on long press
     bucket.addEventListener('contextmenu', function(e) {
       e.preventDefault();
     });
 
-    // Initialize game when page loads
+    // Prevent scrolling on touch devices
+    document.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      // Ensure bucket stays within bounds after resize
+      const containerWidth = gameContainer.offsetWidth;
+      const bucketWidth = bucket.offsetWidth;
+      const currentLeft = bucket.offsetLeft;
+      const maxLeft = containerWidth - bucketWidth;
+      
+      if (currentLeft > maxLeft) {
+        bucket.style.left = maxLeft + 'px';
+        bucket.style.transform = 'none';
+      }
+    });
+
+    // Initialize game state
     window.addEventListener('load', function() {
-      startGame();
+      updateScore();
     });
   </script>
 </body>
