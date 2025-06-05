@@ -217,13 +217,48 @@
 
     #pauseText {
       position: absolute;
-      top: 50%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 36px;
       font-weight: bold;
       color: #ffd700;
       text-shadow: 0 0 20px #ffd700;
+    }
+
+    #resumeBtn {
+      display: none;
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      background: linear-gradient(145deg, #4CAF50, #45a049);
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 25px;
+      box-shadow: 
+        0 8px 15px rgba(76, 175, 80, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+
+    #resumeBtn:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 
+        0 12px 20px rgba(76, 175, 80, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    #resumeBtn:active {
+      transform: translateX(-50%) translateY(0px);
+      box-shadow: 
+        0 6px 10px rgba(76, 175, 80, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
     }
 
     @keyframes pulse {
@@ -360,8 +395,8 @@
         padding: 5px 8px;
       }
       
-      #restartBtn {
-        padding: 10px 20px;
+      #restartBtn, #resumeBtn {
+        padding: 12px 24px;
         font-size: 16px;
       }
       
@@ -478,7 +513,7 @@
         font-size: 16px;
       }
       
-      #restartBtn {
+      #restartBtn, #resumeBtn {
         padding: 18px 35px;
         font-size: 22px;
       }
@@ -526,7 +561,7 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
       
-      #restartBtn:hover {
+      #restartBtn:hover, #resumeBtn:hover {
         transform: translateX(-50%);
         box-shadow: 
           0 8px 15px rgba(238, 90, 82, 0.3),
@@ -548,6 +583,7 @@
     
     <div id="pauseOverlay">
       <div id="pauseText">⏸️ Game Paused</div>
+      <button id="resumeBtn">▶️ Resume Game</button>
     </div>
     
     <div id="bucket"></div>
@@ -581,15 +617,16 @@
     const gameOver = document.getElementById('gameOver');
     const restartBtn = document.getElementById('restartBtn');
     const startBtn = document.getElementById('startBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
     const pauseOverlay = document.getElementById('pauseOverlay');
 
     function calculateGameSpeed() {
-      // Increase speed every 5 stars caught
-      const speedLevel = Math.floor(caught / 5) + 1;
-      currentSpeed = Math.min(speedLevel, 10); // Cap at level 10
+      // Increase speed every 10 stars caught (slower progression)
+      const speedLevel = Math.floor(caught / 10) + 1;
+      currentSpeed = Math.min(speedLevel, 5); // Cap at level 5 instead of 10
       
-      // Decrease spawn rate (faster spawning) and increase fall speed
-      starSpawnRate = Math.max(300, 1000 - (currentSpeed - 1) * 100);
+      // Slower spawn rate decrease and gentler fall speed increase
+      starSpawnRate = Math.max(500, 1000 - (currentSpeed - 1) * 50); // Gentler spawn rate change
       
       speedIndicator.textContent = `Speed Level: ${currentSpeed}`;
       
@@ -608,9 +645,9 @@
       star.textContent = '⭐';
       
       const starLeft = Math.random() * (window.innerWidth - 50);
-      // Increase fall speed based on current speed level
-      const baseFallSpeed = 2 + (currentSpeed - 1) * 0.5;
-      const fallSpeed = baseFallSpeed + Math.random() * 1;
+      // Much slower and more controlled fall speed
+      const baseFallSpeed = 1.5 + (currentSpeed - 1) * 0.3; // Slower base speed and increment
+      const fallSpeed = baseFallSpeed + Math.random() * 0.5; // Less random variation
       
       star.style.left = starLeft + 'px';
       star.style.top = '-50px';
@@ -735,6 +772,7 @@
       gamePaused = false;
       gameOver.style.display = 'none';
       restartBtn.style.display = 'none';
+      resumeBtn.style.display = 'none';
       pauseOverlay.style.display = 'none';
       startBtn.textContent = '⏸️ Pause';
       startBtn.classList.add('paused');
@@ -755,6 +793,7 @@
       gamePaused = true;
       gameRunning = false;
       pauseOverlay.style.display = 'block';
+      resumeBtn.style.display = 'block';
       startBtn.textContent = '▶️ Resume';
       startBtn.classList.remove('paused');
       clearInterval(gameInterval);
@@ -767,8 +806,11 @@
       gamePaused = false;
       gameRunning = true;
       pauseOverlay.style.display = 'none';
+      resumeBtn.style.display = 'none';
       startBtn.textContent = '⏸️ Pause';
       startBtn.classList.add('paused');
+      
+      // Restart the intervals
       gameInterval = setInterval(createStar, starSpawnRate);
       collisionCheckInterval = setInterval(updateStars, 16);
     }
@@ -781,6 +823,7 @@
       clearInterval(collisionCheckInterval);
       gameOver.style.display = 'block';
       restartBtn.style.display = 'block';
+      resumeBtn.style.display = 'none';
       pauseOverlay.style.display = 'none';
       startBtn.textContent = '▶️ Start';
       startBtn.classList.remove('paused');
@@ -823,6 +866,7 @@
       startBtn.classList.remove('paused');
       gameOver.style.display = 'none';
       restartBtn.style.display = 'none';
+      resumeBtn.style.display = 'none';
       pauseOverlay.style.display = 'none';
       updateScore();
     }
@@ -941,6 +985,11 @@
       } else if (gamePaused) {
         resumeGame();
       }
+    });
+
+    // Add event listener for resume button
+    resumeBtn.addEventListener('click', function() {
+      resumeGame();
     });
 
     restartBtn.addEventListener('click', function() {
